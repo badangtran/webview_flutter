@@ -419,7 +419,8 @@
   if ([htmlString isKindOfClass:[NSString class]]) {
     NSString* baseUrl = request[@"baseUrl"];
     if ([baseUrl isKindOfClass:[NSString class]]) {
-      [_webView loadHTMLString:htmlString baseURL:baseUrl];
+      //[_webView loadHTMLString:htmlString baseURL:baseUrl];
+      [_webView loadHTMLString:htmlString baseURL:nil];
         return true;
     } else {
       return  false;
