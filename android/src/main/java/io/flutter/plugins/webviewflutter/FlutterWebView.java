@@ -3,15 +3,21 @@
 // found in the LICENSE file.
 
 package io.flutter.plugins.webviewflutter;
+import android.app.AlertDialog;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.View;
+import android.webkit.WebView;
 import android.webkit.WebStorage;
 import android.webkit.WebViewClient;
+import android.webkit.JsResult;
+import android.webkit.JavascriptInterface;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -21,6 +27,14 @@ import io.flutter.plugin.platform.PlatformView;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class FlutterWebView implements PlatformView, MethodCallHandler {
   private static final String JS_CHANNEL_NAMES_FIELD = "javascriptChannelNames";
@@ -55,6 +69,9 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
 
     flutterWebViewClient = new FlutterWebViewClient(methodChannel);
     applySettings((Map<String, Object>) params.get("settings"));
+    
+    webView.addJavascriptInterface(new JavaScriptInterface(context, methodChannel), "Android");
+    Log.i("TAG", "addJavascriptInterface");
 
     if (params.containsKey(JS_CHANNEL_NAMES_FIELD)) {
       registerJavaScriptChannelNames((List<String>) params.get(JS_CHANNEL_NAMES_FIELD));
@@ -336,6 +353,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
   }
 
   private void updateJsMode(int mode) {
+    Log.i("TAG", "setJavaScriptEnabled_updateJsMode" + mode);
     switch (mode) {
       case 0: // disabled
         webView.getSettings().setJavaScriptEnabled(false);
@@ -371,5 +389,36 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     methodChannel.setMethodCallHandler(null);
     webView.dispose();
     webView.destroy();
+  }
+
+
+
+  public class JavaScriptInterface {
+    private Context context;
+    final MethodChannel myMethodChannel;
+
+    // Instantiate the interface and set the context
+    JavaScriptInterface(Context context, MethodChannel mChannel) {
+      this.context = context;
+      this.myMethodChannel = mChannel;
+    }
+
+    @JavascriptInterface
+    public void receiveMessage(final String val, String origin) {
+        Log.e("TAG", "AAAA : " + val);
+        Log.e("TAG", "BBBB : " + origin.replaceAll("\"", ""));
+        Runnable postMessageRunnable =
+        new Runnable() {
+          @Override
+          public void run() {
+            methodChannel.invokeMethod("onScriptMessageReceived", val);
+          }
+        };
+        if (platformThreadHandler.getLooper() == Looper.myLooper()) {
+          postMessageRunnable.run();
+        } else {
+          platformThreadHandler.post(postMessageRunnable);
+        }
+    }
   }
 }

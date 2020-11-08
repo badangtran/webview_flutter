@@ -61,6 +61,9 @@ class MethodChannelWebViewPlatform implements WebViewPlatformController {
           ),
         );
         return null;
+      case 'onScriptMessageReceived':
+        _platformCallbacksHandler.onScriptMessageReceived(call.arguments);
+        return null;
     }
 
     throw MissingPluginException(

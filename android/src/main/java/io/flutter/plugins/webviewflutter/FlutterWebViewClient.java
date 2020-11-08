@@ -176,6 +176,12 @@ class FlutterWebViewClient {
 
       @Override
       public void onPageFinished(WebView view, String url) {
+        view.loadUrl(
+                "javascript:(function() {" +
+                        "window.parent.addEventListener ('message', function(event) {" +
+                        " Android.receiveMessage(JSON.stringify(event.data), JSON.stringify(event.origin));});" +
+                        "})()"
+        );
         FlutterWebViewClient.this.onPageFinished(view, url);
       }
 

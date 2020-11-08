@@ -87,7 +87,18 @@
     NSDictionary<NSString*, id>* settings = args[@"settings"];
 
     WKWebViewConfiguration* configuration = [[WKWebViewConfiguration alloc] init];
+
     configuration.userContentController = userContentController;
+
+    NSString* source = @"window.parent.addEventListener('message', function(data){ window.webkit.messageHandlers.iosListener.postMessage(JSON.stringify(event.data), JSON.stringify(event.origin)); });";
+    WKUserScript *wkUserScript = [[WKUserScript alloc] initWithSource:source injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:false];
+    [configuration.userContentController addUserScript: wkUserScript];
+    [configuration.userContentController addScriptMessageHandler:self name:@"iosListener"];
+    
+    WKPreferences* preferences = [[WKPreferences alloc] init];
+    preferences.javaScriptEnabled = true;
+    configuration.preferences = preferences;
+
     [self updateAutoMediaPlaybackPolicy:args[@"autoMediaPlaybackPolicy"]
                         inConfiguration:configuration];
 
@@ -117,6 +128,19 @@
     }
   }
   return self;
+}
+
+
+
+/*! @abstract Invoked when a script message is received from a webpage.
+ @param userContentController The user content controller invoking the
+ delegate method.
+ @param message The script message received.
+ */
+- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
+    NSLog(@"%@", message);
+    NSLog(@"%@", message.body);
+    [_channel invokeMethod:@"onScriptMessageReceived" arguments:message.body];
 }
 
 - (UIView*)view {
