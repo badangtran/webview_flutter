@@ -90,7 +90,9 @@
 
     configuration.userContentController = userContentController;
 
-    NSString* source = @"window.parent.addEventListener('message', function(data){ window.webkit.messageHandlers.iosListener.postMessage(JSON.stringify(event.data), JSON.stringify(event.origin)); });";
+      
+    NSString* source = @"window.parent.addEventListener('message', function(data){ event.data.origin=event.origin; window.webkit.messageHandlers.iosListener.postMessage(JSON.stringify(event.data));});";
+    //NSString* source = @"window.parent.addEventListener('message', function(data){ window.webkit.messageHandlers.iosListener.postMessage(JSON.stringify(event.data), JSON.stringify(event.origin));});";
     WKUserScript *wkUserScript = [[WKUserScript alloc] initWithSource:source injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:false];
     [configuration.userContentController addUserScript: wkUserScript];
     [configuration.userContentController addScriptMessageHandler:self name:@"iosListener"];
