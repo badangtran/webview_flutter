@@ -405,25 +405,19 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
 
     @JavascriptInterface
     public void receiveMessage(final String val, String origin) {
-        Log.e("TAG", "AAAA : " + val);
-        Log.e("TAG", "BBBB : " + origin.replaceAll("\"", ""));
-        try {
-          final JSONObject jsonObject = new JSONObject(val);
-          jsonObject.put("origin", origin.replaceAll("\"", ""));
-          Runnable postMessageRunnable = new Runnable() {
-            @Override
-            public void run() {
-              methodChannel.invokeMethod("onScriptMessageReceived", jsonObject.toString());
-            }
-          };
-          if (platformThreadHandler.getLooper() == Looper.myLooper()) {
-            postMessageRunnable.run();
-          } else {
-            platformThreadHandler.post(postMessageRunnable);
-          }
-        } catch (JSONException e) {
-            e.printStackTrace();
+      Log.e("TAG", "AAAA : " + val);
+      Log.e("TAG", "BBBB : " + origin.replaceAll("\"", ""));
+      Runnable postMessageRunnable = new Runnable() {
+        @Override
+        public void run() {
+          methodChannel.invokeMethod("onScriptMessageReceived", val);
         }
+      };
+      if (platformThreadHandler.getLooper() == Looper.myLooper()) {
+        postMessageRunnable.run();
+      } else {
+        platformThreadHandler.post(postMessageRunnable);
+      }
     }
   }
 }

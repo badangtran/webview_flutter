@@ -179,7 +179,8 @@ class FlutterWebViewClient {
         view.loadUrl(
                 "javascript:(function() {" +
                         "window.parent.addEventListener ('message', function(event) {" +
-                        " Android.receiveMessage(JSON.stringify(event.data), JSON.stringify(event.origin));});" +
+                        "event.data.origin = event.origin;" +
+                        " Android.receiveMessage(JSON.stringify(event.data), event.origin);});" +
                         "})()"
         );
         FlutterWebViewClient.this.onPageFinished(view, url);
